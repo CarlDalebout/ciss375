@@ -1,0 +1,9 @@
+This is the repository for the comioler constructer class
+
+for the Lexical Analysis we will be using - flex
+
+scanning - removing the comments and white space
+The proper lexer - bracking down the code into tokens to go to the parser 
+
+
+and the for the syntax analysis we will be using - Bison
