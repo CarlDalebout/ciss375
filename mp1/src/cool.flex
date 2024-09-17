@@ -46,11 +46,12 @@ extern YYSTYPE cool_yylval;
 
 %option noyywrap
 
-/*
- * Define names for regular expressions here.
- */
+/* Defined names for regular expressions */
 
-digit       [0-9]
+DIGIT   [0-9]
+ID      [a-zA-Z][a-z0-9]*
+CHAR    [a-zA-Z]
+STRING  ["][a-zA-Z ]+["]
 
 %%
 
@@ -68,5 +69,29 @@ digit       [0-9]
   *   - Line counting: You should keep the global variable curr_lineno updated
   *     with the correct line number
   */
+
+{ID}                {
+                        printf("ID Token (%s)\n", yytext);
+                    }
+
+{STRING}            {
+                        printf("String Token (%s)\n", yytext);
+                    }
+
+{DIGIT}+"."{DIGIT}* {
+                        printf("Float token (%s)\n", yytext);
+                    }
+
+{DIGIT}+            {
+                        printf("Int Token (%d)\n", atoi( yytext ));
+                    }
+
+"+"|"-"|"*"|"/"|"=" {
+                        printf("Operator Token (%s)\n", yytext);
+                    }
+
+"//"[^}\n]*         /*  eat up one-line comments */
+
+[ \t\n]+            /*  eat up white space */
 
 %%
