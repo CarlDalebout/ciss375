@@ -7,3 +7,6 @@ The proper lexer - bracking down the code into tokens to go to the parser
 
 
 and the for the syntax analysis we will be using - Bison
+
+
+Consider making some more progree. Overall you are tract. Just consider implementing the overall project struture in line with our course description. do more refactoring and remeber to name approproately for ease of reusability. 
