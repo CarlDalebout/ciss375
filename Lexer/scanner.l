@@ -1,7 +1,6 @@
 %{
 #include <math.h>
 #include <ctype.h>
-#include "../Parser/parser.tab.h"
 %}
 
 %option noyywrap
@@ -46,10 +45,8 @@ STRING  ["][a-zA-Z ]+["]
 %%
 
 int main(){
-    while(True)
-    {
-        printf("Enter a string: ");
-        yylex();
-    }
+    printf("Enter a string: ");
+    yylex();
+
     return 0;
 }
