@@ -459,7 +459,7 @@ char *yytext;
 #line 2 "lexer.l"
 #include <math.h>
 #include <ctype.h>
-#include "../Parser/parser.tab.h"
+#include "Parser.tab.h"
 #line 463 "lex.yy.c"
 /* rules */
 #line 465 "lex.yy.c"
@@ -744,7 +744,7 @@ YY_RULE_SETUP
 #line 17 "lexer.l"
 {
                         printf("ID Token (%s)\n", yytext);
-                        return ;
+                        return ID;
                     }
 	YY_BREAK
 case 2:
@@ -1804,8 +1804,10 @@ void yyfree (void * ptr )
 
 
 int main(){
-    printf("Enter a string: ");
-    yylex();
-
+    while(True)
+    {
+        printf("Enter a string: ");
+        yylex();
+    }
     return 0;
 }

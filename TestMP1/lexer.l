@@ -1,7 +1,7 @@
 %{
 #include <math.h>
 #include <ctype.h>
-#include "../Parser/parser.tab.h"
+#include "Parser.tab.h"
 %}
 
 %option noyywrap
@@ -16,7 +16,7 @@ STRING  ["][a-zA-Z ]+["]
 
 {ID}                {
                         printf("ID Token (%s)\n", yytext);
-                        return ;
+                        return ID;
                     }
 
 {STRING}            {
