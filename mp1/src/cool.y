@@ -97,54 +97,225 @@ extern int VERBOSE_ERRORS;
 %type <class_> class
 
 /* You will want to change the following line. */
-%type <features> dummy_feature_list
+%type <features> lst_feature
+%type <feature> method attr
 
 /* Precedence declarations go here. */
+%type <formals> lst_formal
+%type <formal> formal
 
+%type <cases> lst_case
+%type <case_> branch_case
+
+%type <expressions> expression_list lst_arg
+%type <expression> expression let_exp_nested
+
+/* Precedence declarations go here. */
+%left '.'
+%left '+' '-'
+%left '*' '/'
+%left ISVOID
+%left '~'
+%left '@'
+
+%right IN
+%left NOT
+%right ASSIGN
+%nonassoc LE '<' '='
 
 %%
 /* 
    Save the root of the abstract syntax tree in a global variable.
 */
-program : class_list { ast_root = program($1); }
-        ;
+program : class_list 
+        { 
+          ast_root = program($1); 
+        };
 
-class_list
-        : class            /* single class */
-                { $$ = single_Classes($1); }
+class_list : class            /* single class */
+        { $$ = single_Classes($1); 
+          parse_results = $$; 
+        }
         | class_list class /* several classes */
-                { $$ = append_Classes($1,single_Classes($2)); }
-        ;
+        { $$ = append_Classes($1,single_Classes($2)); 
+          parse_results = $$;
+        };
 
-/* If no parent is specified, the class inherits from the Object class. */
-class  : CLASS TYPEID '{' dummy_feature_list '}' ';'
-                { $$ = class_($2,idtable.add_string("Object"),$4,
-                              stringtable.add_string(curr_filename)); }
-        | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
-                { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-        ;
+/* When there isn't a parent class, default to inherit Object class.*/
+  /* otherwise, the class name is curr_filename */
+  class : CLASS TYPEID '{' lst_feature '}' ';'
+    { $$ = class_($2, idtable.add_string("Object"), $4,
+      stringtable.add_string(curr_filename)); }
+    | CLASS TYPEID INHERITS TYPEID '{' lst_feature '}' ';'
+    { $$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); }
+    ;
 
-/* Feature list may be empty, but no empty features in list. */
-dummy_feature_list:        /* empty */
-                {  $$ = nil_Features(); }
-        ;
+lst_feature : lst_feature method ';' /* feature may be a method */
+  	{ $$ = append_Features($1, single_Features($2)); }
+  	| lst_feature attr ';' /* feature may be an attribute 'attr'*/
+  	{ $$ = append_Features($1, single_Features($2)); }
+  	| /* the feature list may be empty*/
+  	{ $$ = nil_Features(); }
+  	| error ';'
+  	{ $$ = 0; }
+    ;
 
-/* end of grammar */
+/* used if the lst_feature is an attribute */
+	attr : OBJECTID ':' TYPEID	/* attribute is not initialized*/
+  	{ $$ = attr($1, $3, no_expr()); }
+  	| OBJECTID ':' TYPEID ASSIGN expression	/* attribute is initialized */
+  	{ $$ = attr($1, $3, $5); }
+  	;
+
+/* used if the lst_feature is a method */
+method : OBJECTID '(' lst_formal ')' ':' TYPEID '{' expression '}'
+{ $$ = method($1, $3, $6, $8); }
+;
+
+/* formal list can have 0, 1, or many formals */
+lst_formal : formal
+{ $$ = single_Formals($1); }
+| lst_formal ',' formal
+{ $$ = append_Formals($1, single_Formals($3)); };
+|
+{ $$ = nil_Formals(); }
+;
+
+formal : OBJECTID ':' TYPEID
+        { $$ = formal($1, $3); };
+
+/* an expression has very many different forms. */
+expression : OBJECTID ASSIGN expression
+{ $$ = assign($1, $3); }
+/* expression can be followed by @typeid.objectid and (args)*/
+| expression '@' TYPEID '.' OBJECTID '(' lst_arg ')'
+{ $$ = static_dispatch($1, $3, $5, $7); }
+/* expression can be followed by .objectID and (args)*/
+| expression '.' OBJECTID '(' lst_arg ')'
+{ $$ = dispatch($1, $3, $5); }
+/* can be objectID and (args)*/
+| OBJECTID '(' lst_arg ')'
+{ $$ = dispatch(object(idtable.add_string("self")), $1, $3); }
+/* while statement */
+| WHILE expression LOOP expression POOL
+{ $$ = loop($2, $4); }
+/* if statement*/
+| IF expression THEN expression ELSE expression FI
+{ $$ = cond($2, $4, $6); }
+/* {a list of expressions} */
+| '{' expression_list '}'
+{ $$ = block($2); }
+| '{' error '}'
+{ $$ = 0; }
+/* let statement */
+| LET let_exp_nested
+{ $$ = $2; }
+/* expression with case */
+| CASE expression OF lst_case ESAC
+{ $$ = typcase($2, $4); }
+/* new typeid exp */
+| NEW TYPEID
+{ $$ = new_($2); }
+/* is void exp */
+| ISVOID expression
+{ $$ = isvoid($2); }
+/* times exp */
+| expression '*' expression
+{ $$ = mul($1, $3);}
+/* divide exp */
+| expression '/' expression
+{ $$ = divide($1, $3);}
+| '~' expression
+{ $$ = neg($2); }
+/* plus exp */
+| expression '+' expression
+{ $$ = plus($1, $3);}
+/* minus exp */
+| expression '-' expression
+{ $$ = sub($1, $3);}
+/* less than exp */
+| expression '<' expression
+{ $$ = lt($1, $3);}
+/* less than or equal to exp */
+| expression LE expression	/* LE represent '<=' */
+{ $$ = leq($1, $3);}
+| expression '=' expression
+{ $$ = eq($1, $3);}
+/* not exp */
+| NOT expression
+{ $$ = comp($2);}
+/* expression in parenthesis */
+| '(' expression ')'
+{ $$ = $2; }
+/* a single string*/
+| STR_CONST
+{ $$ = string_const($1); }
+/* a boolean */
+| BOOL_CONST
+{ $$ = bool_const($1); }
+/* a single objectid */
+| OBJECTID
+{ $$ = object($1); }
+/* a single int*/
+| INT_CONST
+{ $$ = int_const($1); }
+;
+
+/* a case list is one or more branch_case */
+lst_case : branch_case
+{ $$ = single_Cases($1); }
+| lst_case branch_case
+{ $$ = append_Cases($1, single_Cases($2)); }
+;
+
+/* this is the format for branch_case */
+branch_case : OBJECTID ':' TYPEID DARROW expression ';'
+        { $$ = branch($1, $3, $5); }
+
+/* express a nested let expression */
+let_exp_nested : OBJECTID ':' TYPEID IN expression
+{ $$ = let($1, $3, no_expr(), $5); }
+| OBJECTID ':' TYPEID ASSIGN expression IN expression
+{ $$ = let($1, $3, $5, $7); }
+| OBJECTID ':' TYPEID ',' let_exp_nested
+{ $$ = let($1, $3, no_expr(), $5); }
+| OBJECTID ':' TYPEID ASSIGN expression ',' let_exp_nested
+{ $$ = let($1, $3, $5, $7); }
+| error ','
+{ $$ = 0; }
+| error
+{ $$ = 0; }
+;
+
+/* arguments are separated by commas in a function, and can be empty */
+lst_arg : expression
+{ $$ = single_Expressions($1); }
+| lst_arg ',' expression
+{ $$ = append_Expressions($1, single_Expressions($3)); }
+| /* empty option */
+{ $$ = nil_Expressions(); }
+;
+
+/* an expression list is some number of expressions followed by ; */
+expression_list : expression ';'
+{ $$ = single_Expressions($1); }
+| expression_list expression ';'
+{ $$ = append_Expressions($1, single_Expressions($2)); }
+;
+
+/* end of grammar, marked by %% */
 %%
 
 /* This function is called automatically when Bison detects a parse error. */
 void yyerror(const char *s)
 {
-  cerr << "\"" << curr_filename << "\", line " << curr_lineno << ": " \
-    << s << " at or near ";
-  print_cool_token(yychar);
-  cerr << endl;
-  omerrs++;
+extern int curr_lineno;
 
-  if(omerrs>20) {
-      if (VERBOSE_ERRORS)
-         fprintf(stderr, "More than 20 errors\n");
-      exit(1);
-  }
+cerr << "\"" << curr_filename << "\", line " << curr_lineno << ": " \
+<< s << " at or near ";
+print_cool_token(yychar);
+cerr << endl;
+omerrs++;
+
+if(omerrs>50) {fprintf(stdout, "More than 50 errors\n"); exit(1);}
 }
-

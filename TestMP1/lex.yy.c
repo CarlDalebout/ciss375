@@ -457,11 +457,12 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "lexer.l"
 #line 2 "lexer.l"
-
 #include <math.h>
-#line 462 "lex.yy.c"
+#include <ctype.h>
+#include "Parser.tab.h"
+#line 463 "lex.yy.c"
 /* rules */
-#line 464 "lex.yy.c"
+#line 465 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -678,10 +679,10 @@ YY_DECL
 		}
 
 	{
-#line 14 "lexer.l"
+#line 15 "lexer.l"
 
 
-#line 684 "lex.yy.c"
+#line 685 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -740,56 +741,61 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 16 "lexer.l"
+#line 17 "lexer.l"
 {
                         printf("ID Token (%s)\n", yytext);
+                        return ID;
                     }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 20 "lexer.l"
+#line 22 "lexer.l"
 {
                         printf("String Token (%s)\n", yytext);
+                        return STRING;
                     }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 24 "lexer.l"
+#line 27 "lexer.l"
 {
                         printf("Float token (%s)\n", yytext);
+                        return FLOAT;
                     }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "lexer.l"
+#line 32 "lexer.l"
 {
                         printf("Int Token (%d)\n", atoi( yytext ));
+                        return INT;
                     }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 32 "lexer.l"
+#line 37 "lexer.l"
 {
                         printf("Operator Token (%s)\n", yytext);
+                        return OPERATOR;
                     }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 36 "lexer.l"
+#line 42 "lexer.l"
 /*  eat up one-line comments */
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 38 "lexer.l"
+#line 44 "lexer.l"
 /*  eat up white space */
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 40 "lexer.l"
+#line 46 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 792 "lex.yy.c"
+#line 798 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1794,12 +1800,14 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 40 "lexer.l"
+#line 46 "lexer.l"
 
 
 int main(){
-    printf("Enter a string: ");
-    yylex();
-
+    while(True)
+    {
+        printf("Enter a string: ");
+        yylex();
+    }
     return 0;
 }
