@@ -307,7 +307,7 @@ expression_list : expression ';'
 %%
 
 /* This function is called automatically when Bison detects a parse error. */
-void yyerror(char *s)
+void yyerror(const char *s)
 {
 extern int curr_lineno;
 
