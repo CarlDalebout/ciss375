@@ -15,22 +15,27 @@ STRING  ["][a-zA-Z ]+["]
 
 {ID}                {
                         printf("ID Token (%s)\n", yytext);
+                        return ;
                     }
 
 {STRING}            {
                         printf("String Token (%s)\n", yytext);
+                        return STRING;
                     }
 
 {DIGIT}+"."{DIGIT}* {
                         printf("Float token (%s)\n", yytext);
+                        return FLOAT;
                     }
 
 {DIGIT}+            {
                         printf("Int Token (%d)\n", atoi( yytext ));
+                        return INT;
                     }
 
 "+"|"-"|"*"|"/"|"=" {
                         printf("Operator Token (%s)\n", yytext);
+                        return OPERATOR;
                     }
 
 "//"[^}\n]*         /*  eat up one-line comments */
