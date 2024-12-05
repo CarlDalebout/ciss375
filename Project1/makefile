@@ -20,7 +20,11 @@
 #==========================================================
 build:
 	flex lexer.l
-	gcc lex.yy.c -o run
+	bison -d parser.y
+	g++ lex.yy.c parser.tab.c AST.cpp -o run
+
+lexer:
+	flex lexer.l
 r:
 	./run
 run:

@@ -5,16 +5,15 @@
  */
 %{
 #include <iostream>
-#include "cool-tree.h"
-#include "stringtab.h"
-#include "utilities.h"
 
 /* Add your own C declarations here */
-
+int yylex();
+void yyerror(char const *s) {
+    std::cerr << s << std::endl;
+}
 
 /************************************************************************/
 /*                DONT CHANGE ANYTHING IN THIS SECTION                  */
-
 extern int yylex();           /* the entry point to the lexer  */
 extern int curr_lineno;
 extern char *curr_filename;
